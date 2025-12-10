@@ -2,15 +2,17 @@ import express from 'express'
 import { generateTags } from '../ai.js'
 import { logger } from '../utils/logger.js'
 import { storeLog } from '../utils/storeLog.js'
+import { tagSchema } from '../validation/tagSchema.js'
 
 export const tagRouter = express.Router()
 
 tagRouter.post('/', async (req, res) => {
-  const { text } = req.body
-
-  if (typeof text !== 'string' || text.trim() === '') {
-    return res.status(400).json({ error: 'text must be a non-empty string' })
+  const parsed = tagSchema.safeParse(req.body)
+  if (!parsed.success) {
+    return res.status(400).json({ error: parsed.error.errors })
   }
+
+  const { text } = parsed.data
 
   try {
     const tags = await generateTags(text)
