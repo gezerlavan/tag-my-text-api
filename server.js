@@ -2,6 +2,7 @@
 import 'dotenv/config'
 import express from 'express'
 import { generateTags } from './ai.js'
+import { config } from './config/index.js'
 
 const app = express()
 app.use(express.json())
@@ -22,7 +23,6 @@ app.post('/tag', async (req, res) => {
   }
 })
 
-const PORT = process.env.PORT || 3000
-app.listen(PORT, () => {
-  console.log(`API running on http://localhost:${PORT}`)
+app.listen(config.port, () => {
+  console.log(`API running on http://localhost:${config.port}`)
 })

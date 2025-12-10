@@ -1,5 +1,6 @@
 // ai.js
 import { GoogleGenAI } from '@google/genai'
+import { config } from './config'
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY
 
@@ -21,7 +22,7 @@ export async function generateTags(text) {
   `
 
   const response = await ai.models.generateContent({
-    model: 'gemini-2.5-flash', // fast, cheap, great for this use case :contentReference[oaicite:3]{index=3}
+    model: config.model, // fast, cheap, great for this use case :contentReference[oaicite:3]{index=3}
     contents: prompt,
   })
 
