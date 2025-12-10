@@ -17,12 +17,19 @@ export async function generateTags(text) {
   const prompt = `
     You are a tagging engine.
 
-    Given the following user text, respond with 3-6 short, lowercase tags.
-    Rules:
-    - Output ONLY a JSON array of strings, like: ["tag1", "tag2"]
-    - No extra text, no explanations, no keys, no formatting.
+    Given user text, return 3-6 short lowercase tags.
 
-    Text:
+    Output format:
+    ["tag1", "tag2", "tag3"]
+
+    Examples:
+    Input: "I need to prepare for my backend interview"
+    Output: ["interview", "backend", "prep"]
+
+    Input: "Cooking pasta with basil and tomatoes"
+    Output: ["cooking", "pasta", "food"]
+
+    Now analyze this text and return ONLY JSON:
     ${JSON.stringify(text)}
   `
 
@@ -63,16 +70,33 @@ export async function generateTags(text) {
 
 export async function analyzeTone(text) {
   const prompt = `
-    Analyze the tone of this text and return ONLY valid JSON:
+    Analyze the tone of the text.
+    Only return JSON in this format:
     {
-      "tone": "friendly/angry/neutral/etc",
-      "confidence": 0-1,
-      "suggestion": "rewrite suggestion here"
+      "tone": "string",
+      "confidence": number,
+      "suggestion": "string"
     }
 
-    Text:
+    Examples:
+    Text: "Why haven't you answered me?"
+    Output: {
+      "tone": "frustrated",
+      "confidence": 0.82,
+      "suggestion": "Try expressing curiosity instead of blame."
+    }
+
+    Text: "Thanks so much for helping me today!"
+    Output: {
+      "tone": "grateful",
+      "confidence": 0.91,
+      "suggestion": "No change needed."
+    }
+
+    Now analyze:
     ${JSON.stringify(text)}
   `
+
   const response = await ai.models.generateContent({
     model: config.model,
     contents: prompt,
