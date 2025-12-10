@@ -24,6 +24,13 @@ export async function generateTags(text) {
   const response = await ai.models.generateContent({
     model: config.model, // fast, cheap, great for this use case :contentReference[oaicite:3]{index=3}
     contents: prompt,
+    config: {
+      responseMimeType: 'application/json',
+      responseSchema: {
+        type: 'array',
+        items: { type: 'string' },
+      },
+    },
   })
 
   // With @google/genai, the text is on `response.text`
@@ -47,4 +54,35 @@ export async function generateTags(text) {
   }
 
   return tags
+}
+
+export async function analyzeTone(text) {
+  const response = await ai.models.generateContent({
+    model: config.model,
+    contents: `
+      Analyze the tone of this text and return ONLY valid JSON:
+      {
+        "tone": "friendly/angry/neutral/etc",
+        "confidence": 0-1,
+        "suggestion": "rewrite suggestion here"
+      }
+
+      Text:
+      ${JSON.stringify(text)}
+    `,
+    config: {
+      responseMimeType: 'application/json',
+    },
+  })
+
+  try {
+    return JSON.parse(response.text)
+  } catch (e) {
+    console.error('Tone JSON parse error:', e)
+    return {
+      tone: 'unknown',
+      confidence: 0,
+      suggestion: 'Unable to analyze',
+    }
+  }
 }
