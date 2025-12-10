@@ -73,6 +73,15 @@ export async function analyzeTone(text) {
     contents: prompt,
     config: {
       responseMimeType: 'application/json',
+      responseSchema: {
+        type: 'object',
+        properties: {
+          tone: { type: 'string' },
+          confidence: { type: 'number' },
+          suggestion: { type: 'string' },
+        },
+        required: ['tone', 'confidence', 'suggestion'],
+      },
     },
   })
 
