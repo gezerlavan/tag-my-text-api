@@ -34,7 +34,7 @@ export async function generateTags(text) {
   `
 
   const response = await ai.models.generateContent({
-    model: config.model, // fast, cheap, great for this use case :contentReference[oaicite:3]{index=3}
+    model: config.model,
     contents: prompt,
     config: {
       responseMimeType: 'application/json',
@@ -45,8 +45,7 @@ export async function generateTags(text) {
     },
   })
 
-  // With @google/genai, the text is on `response.text`
-  const raw = response.text
+  const raw = typeof response.text === 'function' ? response.text() : response.text
 
   let tags
   try {
@@ -114,10 +113,12 @@ export async function analyzeTone(text) {
     },
   })
 
+  const raw = typeof response.text === 'function' ? response.text() : response.text
+
   try {
-    return JSON.parse(response.text)
+    return JSON.parse(raw)
   } catch (err) {
-    logger('error', 'Tone JSON parse error:', err, 'raw:', response.text)
+    logger('error', 'Tone JSON parse error:', err, 'raw:', raw)
     return {
       tone: 'unknown',
       confidence: 0,
