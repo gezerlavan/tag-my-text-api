@@ -1,122 +1,64 @@
 # Tag My Text API
 
-A simple yet powerful Express.js API that generates relevant tags and analyzes tone for any given text using Google's Gemini AI model.
+Express API for generating tags and analyzing tone using Google Gemini.
 
-## Overview
+## Quickstart
 
-This API provides two endpoints for AI-powered text analysis:
-- **Tag Generation**: Returns 3–6 relevant tags for input text
-- **Tone Analysis**: Analyzes the tone and provides rewrite suggestions
-
-Powered by Google's Gemini 2.5 Flash model for fast and cost-effective results.
-
-## Features
-
-- **AI-Powered Tagging**: Uses Google Gemini 2.5 Flash for intelligent tag generation
-- **Simple REST API**: Single POST endpoint for easy integration
-- **Error Handling**: Graceful fallbacks and meaningful error messages
-- **Environment Configuration**: Secure API key management via environment variables
-
-## Prerequisites
-
-- Node.js (v16 or higher)
-- A Google API key with Gemini access
-- npm or yarn package manager
-
-## Installation
-
-1. Clone or download this repository
-2. Install dependencies:
+1) Install deps
 
 ```bash
 npm install
 ```
 
-3. Create a `.env` file in the root directory:
+2) Configure environment (create `.env`)
 
 ```env
-GEMINI_API_KEY=your_google_api_key_here
-PORT=3000
+GEMINI_API_KEY=your_google_api_key
+GEMINI_MODEL=gemini-2.5-flash    # optional, defaults to gemini-2.5-flash
+PORT=3000                        # optional, defaults to 3000
+LOG_LEVEL=info                   # optional
 ```
 
-## Usage
-
-Start the server:
+3) Run the server
 
 ```bash
+npm run dev   # nodemon
+# or
 node server.js
 ```
 
-The API will be available at `http://localhost:3000`
+API lives at http://localhost:3000
 
-### API Endpoints
+## Endpoints
 
-#### POST `/tag`
+- POST /tag — generate 3–6 tags for text
+- POST /tone — analyze tone and suggest edits
+- GET /history — last 20 requests/responses (no auth; disable or protect in production)
 
-Generates relevant tags for the provided text.
+### POST /tag
 
-**Request Body**
-
-```json
-{
-  "text": "Your text content here"
-}
-```
-
-**Response**
+Request
 
 ```json
-{
-  "tags": ["tag1", "tag2", "tag3"]
-}
+{ "text": "I had a wonderful day at the beach with my friends" }
 ```
 
-**Example**
-
-```bash
-curl -X POST http://localhost:3000/tag \
-  -H "Content-Type: application/json" \
-  -d '{"text": "I had a wonderful day at the beach with my friends"}'
-```
-
-Response:
-```json
-{
-  "tags": ["beach", "friends", "fun", "vacation"]
-}
-```
-
-#### POST `/tone`
-
-Analyzes the tone of the provided text and offers suggestions.
-
-**Request Body**
+Response
 
 ```json
-{
-  "text": "Your text content here"
-}
+{ "tags": ["beach", "friends", "fun", "vacation"] }
 ```
 
-**Response**
+### POST /tone
+
+Request
 
 ```json
-{
-  "tone": "friendly",
-  "confidence": 0.95,
-  "suggestion": "Your text already sounds friendly and approachable!"
-}
+{ "text": "I demand you fix this immediately!" }
 ```
 
-**Example**
+Response
 
-```bash
-curl -X POST http://localhost:3000/tone \
-  -H "Content-Type: application/json" \
-  -d '{"text": "I demand you fix this immediately!"}'
-```
-
-Response:
 ```json
 {
   "tone": "aggressive",
@@ -125,39 +67,42 @@ Response:
 }
 ```
 
+### GET /history
+
+Returns the latest 20 rows stored in SQLite (`data.db`). Contains endpoint, input, output, and timestamp. Treat as sensitive; add auth before exposing.
+
+## Behavior & Operations
+
+- Model: defaults to Gemini 2.5 Flash; override with `GEMINI_MODEL`.
+- Rate limiting: in-memory, 15 requests per minute per route by IP. Behind proxies, configure Express `trust proxy` and consider a shared store.
+- Validation: `text` must be 1–5000 chars (Zod).
+- Storage: writes request/response pairs to `data.db` via `better-sqlite3`. If the DB is unavailable, writes can fail; wrap in your own retry/queue if needed.
+- Logging: timestamped console logging; level set by `LOG_LEVEL` (currently informational only).
+
 ## Error Handling
 
-- **400 Bad Request**: Missing or invalid `text` field in request body
-- **500 Internal Server Error**: AI processing failed
+- 400 for validation errors
+- 429 when rate limit exceeded
+- 500 when the AI call or parsing fails (tags fallback to empty array; tone falls back to `unknown`).
 
 ## Project Structure
 
 ```
 tag-my-text-api/
 ├── server.js          # Express server setup
-├── ai.js              # Google Gemini AI integration
-├── config/
-│   └── index.js       # Configuration management
-├── routes/
-│   ├── tag.js         # Tag generation endpoint
-│   └── tone.js        # Tone analysis endpoint
-├── utils/
-│   └── logger.js      # Logging utility
-└── package.json       # Dependencies and scripts
+├── ai.js              # Google Gemini integration
+├── config/            # Environment-driven config
+├── routes/            # Tag, tone, history endpoints
+├── middleware/        # Rate limiter
+├── utils/             # Logger and SQLite logging helper
+├── validation/        # Zod schemas
+└── data.db            # SQLite store (created at runtime)
 ```
-
-## Dependencies
-
-- **express**: Web server framework
-- **@google/genai**: Google Generative AI client library
-- **dotenv**: Environment variable management
 
 ## Notes
 
-- The API uses Gemini 2.5 Flash model for optimal speed and cost efficiency
-- Tags are automatically normalized to lowercase
-- Empty or invalid responses are handled gracefully with fallback to empty array
-- The model is instructed to return JSON array format for reliable parsing
+- Do not expose `/history` publicly without auth; it contains user text and model outputs.
+- Consider adding tests for `/tag` and `/tone` and swapping the rate limiter to a shared store for multi-instance deployments.
 
 ## License
 
