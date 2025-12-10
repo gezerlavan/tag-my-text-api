@@ -57,19 +57,20 @@ export async function generateTags(text) {
 }
 
 export async function analyzeTone(text) {
+  const prompt = `
+    Analyze the tone of this text and return ONLY valid JSON:
+    {
+      "tone": "friendly/angry/neutral/etc",
+      "confidence": 0-1,
+      "suggestion": "rewrite suggestion here"
+    }
+
+    Text:
+    ${JSON.stringify(text)}
+  `
   const response = await ai.models.generateContent({
     model: config.model,
-    contents: `
-      Analyze the tone of this text and return ONLY valid JSON:
-      {
-        "tone": "friendly/angry/neutral/etc",
-        "confidence": 0-1,
-        "suggestion": "rewrite suggestion here"
-      }
-
-      Text:
-      ${JSON.stringify(text)}
-    `,
+    contents: prompt,
     config: {
       responseMimeType: 'application/json',
     },
