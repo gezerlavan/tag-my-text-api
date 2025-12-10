@@ -1,8 +1,13 @@
 // ai.js
 import { GoogleGenAI } from '@google/genai'
 import { config } from './config/index.js'
+import { logger } from './utils/logger.js'
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY
+
+if (!GEMINI_API_KEY) {
+  throw new Error('GEMINI_API_KEY environment variable is required')
+}
 
 // You can also rely on GOOGLE_API_KEY env var, but since you're already
 // using GEMINI_API_KEY, we keep it explicit and simple.
@@ -47,8 +52,8 @@ export async function generateTags(text) {
 
     // Normalize to array of strings
     tags = tags.map(t => String(t).trim()).filter(t => t.length > 0)
-  } catch (e) {
-    console.error('Failed to parse tags from model:', e, 'raw:', raw)
+  } catch (err) {
+    logger('error', 'Failed to parse tags from model:', err, 'raw:', raw)
     // Fallback so your API doesn't completely break
     tags = []
   }
@@ -87,8 +92,8 @@ export async function analyzeTone(text) {
 
   try {
     return JSON.parse(response.text)
-  } catch (e) {
-    console.error('Tone JSON parse error:', e)
+  } catch (err) {
+    logger('error', 'Tone JSON parse error:', err, 'raw:', response.text)
     return {
       tone: 'unknown',
       confidence: 0,

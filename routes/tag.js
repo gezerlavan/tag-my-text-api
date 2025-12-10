@@ -7,7 +7,7 @@ export const tagRouter = express.Router()
 tagRouter.post('/', async (req, res) => {
   const { text } = req.body
 
-  if (typeof text !== 'string' || text.trim().length === 0) {
+  if (typeof text !== 'string' || text.trim() === '') {
     return res.status(400).json({ error: 'text must be a non-empty string' })
   }
 
