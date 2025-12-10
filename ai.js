@@ -1,6 +1,6 @@
 // ai.js
 import { GoogleGenAI } from '@google/genai'
-import { config } from './config'
+import { config } from './config/index.js'
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY
 
